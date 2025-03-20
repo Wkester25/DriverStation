@@ -89,16 +89,20 @@ prev_state = -1
 
 
 while True:
+    time.sleep(.01)
     if warned == False & (time_until_endgame.get() <= 30):
         warned = True
         flashStrip(hue=0, wait_ms=100, flashes=5)
         lastSolid = ""
 
     if(prev_can_align != can_align.get()) | (prev_align != aligned.get()) | (prev_state != status.get()):
+        prev_can_align = can_align.get()
+        prev_align = aligned.get()
+        prev_state = status.get()
         while aligned.get() & (status.get() == 2) & (prev_can_align == False):
             flashStrip(hue=96, wait_ms=250, flashes=1)
 
-        if can_align.get() & (status.get() == 2) & (prev_can_align == False):
+        if can_align.get() & (status.get() == 2):
             set_strip_color(96)
             show_pixels()
 
