@@ -30,6 +30,12 @@ def show_pixels():
 def set_strip_color(hue):
     board.send_sysex(0x70, bytearray([0x04, hue]))
 
+def set_pixel_brightness(index, brightness):
+    board.send_sysex(0x70, bytearray([0x05, index, int((brightness / 100) * 255)]))
+
+def set_strip_brightness(brightness):
+    board.send_sysex(0x70, bytearray([0x06, int((brightness / 100) * 255)]))
+
 def flashStrip(hue=0, wait_ms=20, flashes=1):
     for i in range(flashes):
         print("Flashing strip #{}".format(i))
@@ -99,10 +105,10 @@ while True:
         prev_can_align = can_align.get()
         prev_align = aligned.get()
         prev_state = status.get()
-        while aligned.get() & (status.get() == 2) & (prev_can_align == False):
+        while aligned.get() & ((status.get() == 2) | (status.get() == 1)):
             flashStrip(hue=96, wait_ms=250, flashes=1)
 
-        if can_align.get() & (status.get() == 2):
+        if can_align.get() & ((status.get() == 2) | (status.get() == 1)):
             set_strip_color(96)
             show_pixels()
 
@@ -111,7 +117,7 @@ while True:
             show_pixels()
 
         while status.get() == 1:
-            flashStrip(hue=0, wait_ms=100, flashes=1)
+            flashStrip(hue=0, wait_ms=500, flashes=1)
             lastSolid = ""
 
         while status.get() == 0:
