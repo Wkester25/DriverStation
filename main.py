@@ -39,7 +39,6 @@ def set_strip_brightness(brightness):
 
 def flashStrip(hue=0, wait_ms=20, flashes=1):
     for i in range(flashes):
-        print("Flashing strip #{}".format(i))
         set_strip_color(hue)
         show_pixels()
         time.sleep(wait_ms / 2000.0)
@@ -76,7 +75,6 @@ def bouncingHue(wait_ms=20, iterations=5, minHue=0, maxHue=360):
     step = 1  # Hue step size
     hue = hue_min  # Start hue
     direction = 1  # 1 for increasing, -1 for decreasing
-
     for _ in range(255 * iterations):  # Arbitrary large number for continuous effect
         for i in range(NUM_LEDS):
             set_pixel_color(i, hue)  # Assuming the library supports direct hue values
@@ -91,39 +89,35 @@ def bouncingHue(wait_ms=20, iterations=5, minHue=0, maxHue=360):
 
 
 if __name__ == '__main__':
-    warned = False
     prevTime = 0
     prev_can_align = False
     prev_align = False
     prev_state = -1
+    prev_warned = False
     while True:
         time.sleep(.01)
-        if warned == False & (time_until_endgame.get() <= 30):
-            warned = True
-            flashStrip(hue=0, wait_ms=100, flashes=5)
-            lastSolid = ""
-
-        if(prev_can_align != can_align.get()) | (prev_align != aligned.get()) | (prev_state != status.get()):
+        if(prev_can_align != can_align.get()) | (prev_align != aligned.get()) | (prev_state != status.get()) | ((prevTime > time_until_endgame.get()) & (time_until_endgame.get() <= 30)):
             prev_can_align = can_align.get()
             prev_align = aligned.get()
             prev_state = status.get()
+            if (prev_warned == False) & ((time_until_endgame.get() <= 30) & (time_until_endgame.get() < prevTime)):
+                prev_warned = True
+                flashStrip(hue=0, wait_ms=100, flashes=5)
             while aligned.get() & ((status.get() == 2) | (status.get() == 1)):
                 flashStrip(hue=96, wait_ms=250, flashes=1)
-
             if can_align.get() & ((status.get() == 2) | (status.get() == 1)):
                 set_strip_color(96)
                 show_pixels()
-
             elif status.get() == 2:
                 set_strip_color(155)
                 show_pixels()
-
             while status.get() == 1:
                 flashStrip(hue=0, wait_ms=500, flashes=1)
                 lastSolid = ""
-
             while status.get() == 0:
                 hueCycle(wait_ms=10, iterations=1, minHue=130, maxHue=170)
                 lastSolid = ""
+            prevTime = time_until_endgame.get()
+
 
 
